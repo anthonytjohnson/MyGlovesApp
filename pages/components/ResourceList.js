@@ -70,7 +70,7 @@ class ResourceListWithProducts extends React.Component {
 
             return (
               <>
-              <Heading>Discount your products</Heading>
+              <Heading>Update Product Prices</Heading>
                 <Card>
                   <ResourceList
                     showHeader
