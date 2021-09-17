@@ -6,6 +6,7 @@ import Shopify, { ApiVersion } from "@shopify/shopify-api";
 import Koa from "koa";
 import next from "next";
 import Router from "koa-router";
+import editProductTitle from "./editproducttitle";
 
 dotenv.config();
 const port = parseInt(process.env.PORT, 10) || 8081;
@@ -31,6 +32,7 @@ Shopify.Context.initialize({
 const ACTIVE_SHOPIFY_SHOPS = {};
 
 app.prepare().then(async () => {
+  let access_token = "";
   const server = new Koa();
   const router = new Router();
   server.keys = [Shopify.Context.API_SECRET_KEY];
@@ -41,7 +43,7 @@ app.prepare().then(async () => {
         const { shop, accessToken, scope } = ctx.state.shopify;
         const host = ctx.query.host;
         ACTIVE_SHOPIFY_SHOPS[shop] = scope;
-
+        access_token = accessToken;
         const response = await Shopify.Webhooks.Registry.register({
           shop,
           accessToken,
@@ -97,6 +99,13 @@ app.prepare().then(async () => {
     } else {
       await handleRequest(ctx);
     }
+  });
+
+  const cron = require("node-cron");
+  console.log(`[${new Date().toString()}] Start the cron job...`);
+  // Schedule tasks to be run on the server.
+  cron.schedule("1 * * * *", function () {
+    editProductTitle(process.env.SHOP, access_token);
   });
 
   server.use(router.allowedMethods());
