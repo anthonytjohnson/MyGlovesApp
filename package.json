@@ -1,5 +1,5 @@
 {
-  "name": "shopify-app-node",
+  "name": "my-gloves-app",
   "version": "1.0.0",
   "description": "Shopify's node app for CLI tool",
   "scripts": {
@@ -71,5 +71,10 @@
     "*.{js,css,json,md}": [
       "prettier --write"
     ]
+  },
+  "homepage": "https://github.com/Shopify/shopify-app-node#readme",
+  "main": ".eslintrc.js",
+  "engines": {
+    "node": "14.15.5"
   }
 }
