@@ -19,3 +19,8 @@ config/tunnel.pid
 
 # next build output
 .next/
+
+/node_modules
+npm-debug.log
+.DS_Store
+/*.env
