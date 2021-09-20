@@ -6,7 +6,8 @@ import Shopify, { ApiVersion } from "@shopify/shopify-api";
 import Koa from "koa";
 import next from "next";
 import Router from "koa-router";
-import editProductTitle from "./editproducttitle";
+import editProductTitle from "./editproducttitle.js";
+const cron = require("node-cron");
 
 dotenv.config();
 const port = parseInt(process.env.PORT, 10) || 8081;
@@ -28,11 +29,10 @@ Shopify.Context.initialize({
 });
 
 // Storing the currently active shops in memory will force them to re-login when your server restarts. You should
-// persist this object in your app.
+// persist this object in your app
 const ACTIVE_SHOPIFY_SHOPS = {};
 
 app.prepare().then(async () => {
-  let access_token = "";
   const server = new Koa();
   const router = new Router();
   server.keys = [Shopify.Context.API_SECRET_KEY];
@@ -41,9 +41,14 @@ app.prepare().then(async () => {
       async afterAuth(ctx) {
         // Access token and shop available in ctx.state.shopify
         const { shop, accessToken, scope } = ctx.state.shopify;
+        // console.log(accessToken);
         const host = ctx.query.host;
         ACTIVE_SHOPIFY_SHOPS[shop] = scope;
-        access_token = accessToken;
+
+        cron.schedule("*/2 * * * *", () => {
+          editProductTitle(accessToken);
+        });
+
         const response = await Shopify.Webhooks.Registry.register({
           shop,
           accessToken,
@@ -100,14 +105,6 @@ app.prepare().then(async () => {
       await handleRequest(ctx);
     }
   });
-
-  const cron = require("node-cron");
-  console.log(`[${new Date().toString()}] Start the cron job...`);
-  // Schedule tasks to be run on the server.
-  cron.schedule("1 * * * *", function () {
-    editProductTitle(process.env.SHOP, access_token);
-  });
-
   server.use(router.allowedMethods());
   server.use(router.routes());
   server.listen(port, () => {
